@@ -1,0 +1,8 @@
+{
+  "name": "JRT Mechanical WIP & Financial Suite",
+  "description": "Construction Work-in-Progress (WIP) report builder and master Google Sheets financial reporting suite for gains & losses, forecasts & fades, cash lookahead, job scorecards, and bank & bonding compliance.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profit Forecast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<!--XLSX-->
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1d2321;--mute:#6b736f;--line:#e3e1da;--soft:#efede6;--acc:#1f5c4f;--acc2:#e3efe9;--neg:#b3261e;--amber:#a76a00;--mono:'IBM Plex Mono',ui-monospace,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 'IBM Plex Sans',system-ui,sans-serif}
+.wrap{max-width:1320px;margin:0 auto;padding:22px 22px 80px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--mute);font-size:13px}
+h2{font-size:15px;margin:28px 0 4px}
+h2+.sub{margin-bottom:10px}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:8px 14px;font-weight:600}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:6px;padding:6px 10px;color:var(--ink)}
+.ghost.sm{padding:2px 8px}
+#reports{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+h3{font-size:14px;margin:18px 0 2px}
+.rcard{background:var(--card);border:1px dashed #cfccc2;border-radius:8px;padding:12px 14px}
+.rcard.ok{border-style:solid;border-color:var(--line)}
+.rt{font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px}
+.rcard.ok .rt:before{content:'';width:8px;height:8px;border-radius:50%;background:var(--acc)}
+.r1{font-size:12.5px;margin-top:4px;word-break:break-all}
+.r2{font-size:12px;color:var(--mute)}
+.rdet{margin-top:6px;font-size:12px}
+.rdet summary{cursor:pointer;color:var(--mute)}
+.rdet label{display:flex;justify-content:space-between;gap:8px;margin-top:6px;align-items:center}
+.rdet select,.rdet input{max-width:60%}
+.drophint{font-size:12px;color:var(--mute);margin-top:8px}
+body.drag:after{content:'Drop reports to load them';position:fixed;inset:10px;border:3px dashed var(--acc);border-radius:14px;background:rgba(246,245,241,.9);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;color:var(--acc);z-index:50}
+.controls{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:18px 0 6px;font-size:13px}
+.controls label{display:flex;gap:6px;align-items:center}
+input,select{font:inherit;font-size:13px;border:1px solid var(--line);border-radius:5px;padding:4px 6px;background:#fff;color:var(--ink)}
+input[type=number]{font-family:var(--mono);text-align:right}
+#basis{font-size:12.5px;color:var(--mute)}
+#headline{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 14px}
+.kl{font-size:12px;color:var(--mute)}
+.kv{font:600 22px var(--mono);margin-top:2px}
+.ks{font-size:12px;color:var(--mute)}
+.scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px}
+.scroll.tall{max-height:70vh;overflow:auto}
+.scroll.tall thead th{position:sticky;top:0;z-index:3}
+.jobs td.job,.jobs th:nth-child(1){position:sticky;left:0;background:#fff;z-index:2;min-width:92px;max-width:92px}
+.jobs td.nm,.jobs th:nth-child(2){position:sticky;left:92px;background:#fff;z-index:2;box-shadow:1px 0 0 var(--line)}
+.jobs thead th:nth-child(1),.jobs thead th:nth-child(2){z-index:4;background:#fbfaf7}
+.jobs tfoot td:nth-child(1),.jobs tfoot td:nth-child(2){position:sticky;background:#fbfaf7;z-index:2}
+.jobs tfoot td:nth-child(1){left:0}.jobs tfoot td:nth-child(2){left:92px}
+.jobs tfoot td{position:sticky;bottom:0;z-index:1}
+#summary td:first-child,#summary th:first-child,#overhead td:first-child,#overhead th:first-child{position:sticky;left:0;background:#fff;z-index:1;box-shadow:1px 0 0 var(--line)}
+#summary tr.grp td:first-child{background:var(--soft)}#summary tr.grp.co td:first-child{background:var(--acc2)}#overhead tr.grp td:first-child{background:var(--soft)}
+table.grid{border-collapse:collapse;width:100%;font-size:13px}
+.grid th,.grid td{padding:6px 10px;border-bottom:1px solid var(--soft);white-space:nowrap;text-align:left}
+.grid thead th{font-size:12px;color:var(--mute);font-weight:600;background:#fbfaf7;position:sticky;top:0}
+.grid .n{text-align:right;font-family:var(--mono);font-size:12.5px}
+.grid th.n{font-family:inherit}
+.grid .tot{background:#faf9f5;font-weight:600}
+.grid .ytd{background:#f3f1ea;border-left:1px solid var(--line)}.grid .ye{background:var(--acc2);font-weight:600}
+.kpi.yek{border-color:var(--acc);background:var(--acc2)}
+.tag{display:block;font-size:10.5px;font-weight:500;color:var(--acc)}
+tr.grp td{background:var(--soft);font-weight:600;font-size:12.5px;padding-top:8px}
+tr.grp.co td{background:var(--acc2);color:var(--acc)}
+tr.sub td{color:var(--mute)}
+tr.b td{font-weight:600}
+tr.net td{font-weight:700;border-bottom:2px solid var(--line)}
+tr.net.co td{font-size:14px}
+.neg{color:var(--neg)}
+.muted{color:var(--mute)}
+#watch{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.wbox{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.wt{font-weight:600}
+.ws{font-size:12px;color:var(--mute);margin:2px 0 8px}
+.wbox ul{list-style:none;margin:0;padding:0;max-height:240px;overflow:auto}
+.wbox li{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-top:1px solid var(--soft);font-size:13px}
+.wbox li span{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.wbox li em{color:var(--mute);font-style:normal;font-size:12px;margin-left:auto;padding-right:8px}
+a{color:var(--acc);text-decoration:none}
+a:hover{text-decoration:underline}
+.jobbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.tab{border:1px solid var(--line);background:#fff;padding:5px 11px;border-radius:20px;font-size:12.5px;margin-right:4px}
+.tab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+tr.click{cursor:pointer}
+tr.click:hover td{background:#f7faf8}
+tr.click:hover td.job,tr.click:hover td.nm{background:#f7faf8}
+.jobs .nm{max-width:220px;overflow:hidden;text-overflow:ellipsis}
+.jobs .md{font-size:12px;color:var(--mute)}
+.jobs .job{font-family:var(--mono);font-size:12.5px}
+.sh th{font-size:11px;padding-top:0}
+th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:var(--acc)}th.sorted{color:var(--acc)}
+tfoot td{font-weight:600;background:#fbfaf7}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.dot.r{background:var(--neg)}.dot.a{background:#e0a100}
+#notwip{font-size:12px;color:var(--mute);margin-top:6px}
+#likely input{width:100%}
+#likely input.sm{width:70px}
+input.mid{width:110px}
+#overhead input.sm{width:70px}
+input.set{background:#fff8e6;border-color:#e0c37a}
+#editor{position:fixed;inset:0;background:rgba(20,25,23,.35);display:none;justify-content:flex-end;z-index:40}
+#editor.open{display:flex}
+.panel{background:#fff;width:min(720px,100%);height:100%;overflow:auto;padding:20px 22px 40px;box-shadow:-8px 0 30px rgba(0,0,0,.12)}
+.ph{display:flex;justify-content:space-between;gap:10px}
+.pt{font-weight:700;font-size:17px}
+.ps{font-size:12.5px;color:var(--mute)}
+.x{border:0;background:none;font-size:26px;line-height:1;color:var(--mute)}
+.fl{font-size:12.5px;border-radius:6px;padding:7px 10px;margin-top:10px}
+.fl.r{background:#fbeceb;color:#8c1d17}.fl.a{background:#fdf4e1;color:#7a5200}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.stats div{background:var(--bg);border-radius:6px;padding:8px 10px}
+.stats span{display:block;font-size:11.5px;color:var(--mute)}
+.stats b{font:600 15px var(--mono)}
+.sect{font-weight:600;margin:18px 0 8px;font-size:13.5px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:6px 12px;border-right:1px solid var(--line);font-size:13px}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--acc);color:#fff}
+.row2{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+.row2 label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mute)}
+.row2 .dim{opacity:.5}
+.hint{font-size:12px;color:var(--mute);margin-top:8px}
+.grid.ed .pin{width:80px}
+.cpanel{margin-top:14px;max-width:520px}.cpanel td:first-child{color:var(--mute)}
+.cotab input.mid{width:88px}.cotab select{max-width:96px}.cotab td,.cotab th{padding:6px 5px}
+.gutrow{display:flex;gap:18px;align-items:center;flex-wrap:wrap;background:var(--bg);border-radius:8px;padding:10px 12px}
+.gutrow span{display:block;font-size:11.5px}.gutrow b{font:600 15px var(--mono)}
+.gutrow label{font-size:13px;display:flex;gap:6px;align-items:center}.gutrow .dim{opacity:.5}
+.seg button.on.gain{background:var(--acc)}.seg button.on.fade{background:var(--neg);color:#fff}.seg button.on.flat{background:#6b736f;color:#fff}
+td.gut{font-size:12px;white-space:nowrap}td.gut.gain{color:var(--acc)}td.gut.fade{color:var(--neg)}td.gut.flat{color:var(--mute)}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;max-width:min(720px,92vw);opacity:0;transition:.25s;pointer-events:none;z-index:60}
+#toast.show{opacity:1;transform:translateX(-50%)}
+#empty{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:28px;margin-top:16px;text-align:center;color:var(--mute)}
+#saved{font-size:12px;color:var(--mute)}
+
+#report{display:none}
+body.rep .wrap{display:none}
+body.rep #report{display:block}
+body.rep{background:#e9e7e1}
+.rtool{position:sticky;top:0;z-index:20;background:#f6f5f1;border-bottom:1px solid var(--line);padding:10px 22px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:13px}
+.rtool label{display:flex;gap:6px;align-items:center}
+.rtool .rnl{flex-basis:100%;align-items:flex-start}
+.rtool textarea{flex:1;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:5px;padding:5px 7px;resize:vertical}
+#rdoc{background:#fff;max-width:1180px;margin:20px auto 60px;padding:36px 40px;box-shadow:0 1px 3px rgba(0,0,0,.08);color:#1a1a1a;font-size:12.5px}
+.rhead{display:flex;align-items:center;gap:22px;border-bottom:3px solid #cf6d2c;padding-bottom:14px}
+.rhead img{height:84px}
+.rco{font-weight:700;font-size:20px;letter-spacing:-.01em}
+.rtitle{font-size:15px;font-weight:600;color:#cf6d2c;margin-top:1px}
+.rsubt{color:#555;margin-top:2px}
+.rmeta{margin-left:auto;text-align:right;color:#555;font-size:11.5px;line-height:1.5}
+.rkpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 6px}
+.rk{border:1px solid #e2e0da;border-left:3px solid #cf6d2c;padding:9px 12px}
+.rkl{font-size:11px;color:#666}
+.rkv{font:600 18px var(--mono);margin-top:2px}
+.rks{font-size:11px;color:#777}
+.rsec{margin-top:22px}
+.rsec h2{font-size:14px;margin:0 0 6px;padding-bottom:4px;border-bottom:1px solid #ddd;text-transform:uppercase;letter-spacing:.04em;color:#333}
+.rh3{font-size:13px;margin:16px 0 4px;color:#cf6d2c}
+.rnote{color:#666;margin:0 0 8px;font-size:11.5px}
+table.rtab{border-collapse:collapse;width:100%;font-size:11.5px}
+.rtab th,.rtab td{padding:3px 7px;white-space:nowrap;text-align:left;border-bottom:1px solid #f0eee9}
+.rtab thead th{font-size:10.5px;color:#555;font-weight:600;border-bottom:1.5px solid #bbb;vertical-align:bottom}
+.rtab .n{text-align:right;font-family:var(--mono);font-size:11px}
+.rtab th.n{font-family:inherit}
+.rt2{display:block;font-weight:400;color:#999;font-size:9.5px}
+.rtab .ytd{background:#f6f5f2}.rtab .ye{background:#fbefe6;font-weight:600}.rtab .tot{background:#f6f5f2;font-weight:600}
+.rtab tr.rg td{background:#f1efea;font-weight:700;padding-top:6px}
+.rtab tr.rg.co td{background:#fbefe6;color:#a3521d}
+.rtab tr.mut td{color:#666}
+.rtab tr.b td{font-weight:600}
+.rtab tr.net td{font-weight:700;border-bottom:1.5px solid #bbb}
+.rtab tr.ni td{font-weight:700;background:#fdf1e6;border-top:1.5px solid #cf6d2c;border-bottom:1.5px solid #cf6d2c;-webkit-print-color-adjust:exact;print-color-adjust:exact}.rtab tr.eb td{font-style:italic;border-bottom:1.5px solid #bbb}
+.rtab td.jn{font-family:var(--mono);font-size:11px;vertical-align:top}
+.rtab td.nm{white-space:normal;min-width:170px;max-width:240px;vertical-align:top}
+.rtab td.ml{color:#777;font-size:10.5px}
+.rtab tr.jl td{border-bottom:1px solid #d9d6cf}
+.rtab tr.st td{background:#f1efea;font-weight:700}
+.rtab.narrow{width:auto;min-width:60%}
+.rtab tr.tt td{border-top:1.5px solid #bbb}
+.rbasis{margin:0;padding-left:18px;color:#444;font-size:11.5px}
+.rbasis li{margin:2px 0}
+.rnotes{margin-top:8px;padding:8px 10px;background:#faf9f6;border-left:3px solid #cf6d2c}
+.jobsr{margin-bottom:4px}
+.rbasis.lq{margin:0 0 10px}
+.rtab td.gpc{vertical-align:top;font-weight:600}.rtab .pos{color:#1f7a4d}.rbasis.lq li{margin:3px 0}
+.rwc{flex-basis:100%}.rwc summary{cursor:pointer;color:var(--acc);font-weight:600}
+.rwcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px 16px;margin-top:8px}
+.rwcg label{justify-content:space-between}
+.rtab.liq th,.rtab.liq td{padding:3px 4px}.rtab.liq .n{font-size:10.5px}.rtab.liq td:first-child{white-space:normal;min-width:140px;max-width:190px}.rtab.liq tr.rg td{white-space:normal}
+@media print{.rtab.liq .n{font-size:8.5px}.rtab.liq th,.rtab.liq td{padding:2px 3px}}
+.rbackup{margin-top:8px;padding:7px 10px;background:#faf9f6;border-left:3px solid #cf6d2c;color:#333}.rwcg input{width:120px}
+.rtab td[rowspan]{vertical-align:top}
+@media print{
+  @page{size:landscape;margin:.35in}
+  body,body.rep{background:#fff}
+  .rtool,#toast,#editor{display:none!important}
+  #rdoc{box-shadow:none;margin:0;padding:0;max-width:none;font-size:10px}
+  .rtab{font-size:9px}.rtab .n{font-size:8.5px}
+  .rtab th,.rtab td{padding:1px 5px;line-height:1.15}
+  .rtab thead th{padding-top:0;padding-bottom:2px}.rt2{font-size:8px}
+  .rhead{padding-bottom:6px}.rhead img{height:50px}.rco{font-size:17px}.rtitle{font-size:13px}
+  .rkpis{margin:8px 0 0;gap:8px}.rk{padding:4px 9px}.rkv{font-size:14px}.rkl,.rks{font-size:9px}
+  .rsec{margin-top:10px}.rsec h2{font-size:11.5px;margin-bottom:3px;padding-bottom:2px}
+  .rtab tr.rg td{padding-top:3px}
+  .liqsec,.jobsec{break-before:page}
+  .sumtab td,.sumtab th{padding:0.5px 5px;line-height:1.08}.sumtab .n{font-size:8.3px}.sumtab td{font-size:8.6px}.sumtab tr.rg td{padding-top:2px}
+  .jobsec .rh3{margin-top:10px}
+  .jb,.avoid,.rk{break-inside:avoid}
+  .rh3{break-after:avoid}
+  thead{display:table-header-group}
+  .rtab .ytd,.rtab .ye,.rtab .tot,.rtab tr.rg td,.rtab tr.st td,.rnotes{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+.topnav{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:4px;background:#1d2321;padding:6px 16px}
+.topnav img{height:26px;margin-right:10px;border-radius:3px;background:#fff}
+.topnav button{background:transparent;border:0;color:#cfd6d3;font:600 13px 'IBM Plex Sans',sans-serif;padding:7px 12px;border-radius:6px}
+.topnav button.on{background:#cf6d2c;color:#fff}
+.topnav button:hover:not(.on){background:#2c3431;color:#fff}
+#look{display:none}#score{display:none}
+body.sc .wrap:not(#score .wrap){display:none}body.sc #score{display:block}
+.sctool{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:4px 0 10px}.sctool .sub{flex-basis:100%}
+.scgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}@media(max-width:1000px){.scgrid{grid-template-columns:1fr}}
+.scbox{overflow-x:auto}.wbox h3{margin:2px 0 8px;font-size:15px}
+.sct td,.sct th{padding:5px 8px}.sct .pos,.lakpis .pos{color:#1f7a4d}
+tr.scp{cursor:pointer}tr.scp:hover td{background:#f7f6f1}tr.scp.sel td{background:var(--acc2)}
+.scb{font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:9px;background:var(--soft)}.scb.pos{background:#e3f1e8}.scb.neg{background:#fbe9e7}
+.scng{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px 14px;margin-top:6px}.scng label{display:flex;gap:8px;align-items:center}.scng span{font-family:var(--mono);font-size:12px;width:60px}.scng input{flex:1}
+.kpi.sck{cursor:pointer}.kpi.sck:hover{border-color:var(--acc)}.kpi.sck.on{outline:2px solid var(--acc)}td.scc{cursor:pointer;text-decoration:underline dotted}td.scc:hover{background:var(--acc2)!important}#scList,#clList{scroll-margin-top:50px}
+.clh{margin:26px 0 6px;font-size:20px;border-top:2px solid var(--line);padding-top:18px}.lakpis.cl5{grid-template-columns:repeat(5,1fr)}td.scu{max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.scnames summary{cursor:pointer;font-weight:600}
+body.la .wrap:not(#look .wrap){display:none}
+body.la #look{display:block}
+body.rep .topnav{display:none}
+.rtool{top:0}
+.lakpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 12px}
+.kpi.bad{border-color:#e6b3ae;background:#fdf3f2}
+.lachartbox{padding:8px}
+.lachart{width:100%;height:auto;display:block;min-width:700px}
+.latab td:first-child{min-width:340px;max-width:440px}
+.lawk{margin-top:14px}.lawk summary{cursor:pointer;font-weight:600;color:var(--acc)}
+.drvwrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:12px}
+.drvg{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.drvg h3{margin:0 0 8px;font-size:13.5px}
+.drv{margin:6px 0 8px}
+.drv label{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px;font-weight:500}
+.drv input{width:130px}
+.src{font-size:11.5px;color:var(--mute);margin-top:2px}
+.grid.mini td,.grid.mini th{padding:3px 6px}.grid.mini input{width:120px}
+.hrs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:4px 10px;margin-top:6px}
+.hrs .hr{display:flex;justify-content:space-between;align-items:center;font-size:12px;gap:6px}.hrs input{width:64px}
+.row2{display:flex;gap:6px;margin:6px 0}
+
+.rsrc{font-size:11px;color:var(--mute);font-weight:400;white-space:normal;max-width:420px;margin-top:1px;line-height:1.35}
+.drillc{cursor:pointer;text-decoration:underline dotted #9aa39f;text-underline-offset:3px}
+.drillc:hover{background:#fbefe6}
+#drill{position:fixed;inset:0;background:rgba(20,26,24,.45);z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:60px 16px}
+#drill[hidden]{display:none}
+#drill .dbox{background:#fff;border-radius:10px;width:min(820px,100%);max-height:calc(100vh - 120px);display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+#drill .dhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:14px 16px;border-bottom:1px solid var(--line)}
+#drill .dtitle{font-weight:700;font-size:15px}#drill .dsub{font-size:12px;color:var(--mute);margin-top:2px}
+#drill .dscroll{overflow:auto;padding:4px 8px 10px}
+#drill tr.dg td{font-weight:600}#drill tr.dg.click{cursor:pointer}#drill tr.dg.click:hover td{background:#f6f5f1}
+#drill .arr{display:inline-block;width:14px;color:var(--mute);transition:transform .12s}#drill tr.dg.open .arr{transform:rotate(90deg)}
+#drill tr.dr td{font-size:12px;color:#444;background:#fbfaf7}#drill td.lbl{padding-left:26px;white-space:normal}
+#drill a.jl{font-size:11px;font-weight:500;color:var(--acc);margin-left:8px;cursor:pointer}
+@media (max-width:820px){.lakpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:820px){#reports{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<nav class="topnav"><img src="data:image/jpeg;base64,/*LOGO*/" alt=""><button data-view="main" class="on">Profit forecast</button><button data-view="look">Cash lookahead</button><button data-view="score">Job scorecard</button><button data-view="report">Bank &amp; bonding report</button></nav>
+<div class="wrap">
+  <header>
+    <div><h1>Profit Forecast</h1><div class="sub">Drop in your WIP, job cost report, P&amp;L and AR/AP aging. Set finish months and fade on the jobs that need it. <span id="saved"></span></div></div>
+    <button class="btn" id="pick">Add reports</button>
+  </header>
+  <input type="file" id="file" multiple accept=".xlsx,.xlsm,.xls,.csv,.pdf" hidden>
+  <div id="reports"></div>
+  <div class="drophint">Drop all the files anywhere on this page at once. Each month, drop the new versions; your job settings carry over.</div>
+  <div id="empty">Load your WIP workbook to start. <button class="ghost" id="pick2">Choose files</button></div>
+  <div id="main" style="display:none">
+    <div class="controls">
+      <label>Months ahead <select id="horizon"><option value="3">3</option><option value="6">6</option><option value="12">12</option></select></label>
+      <label>Use finish months for jobs over $<input id="threshold" type="number" step="100000" style="width:120px"></label>
+      <label><input type="checkbox" id="incLikely"> Include likely jobs</label>
+    </div>
+    <div id="basis"></div>
+    <div id="headline"></div>
+    <h2>By division</h2>
+    <div class="sub">Gross profit on contract jobs is booked by percent complete, so a fade hits the month it's booked, on all the work already done.</div>
+    <div class="scroll" id="summary"></div>
+    <h2>Month detail</h2>
+    <div class="sub">Every job's revenue, cost and profit for one month, worst first. Click a heading to re-sort, or a job to open it.</div>
+    <div class="jobbar"><div id="mmonths"></div><div class="seg" id="mdivs"></div></div>
+    <div class="sub" id="mnote" style="margin:0 0 6px"></div>
+    <div class="scroll tall" id="month"></div>
+    <h2>Cash</h2>
+    <div class="sub">Billing follows earned revenue and keeps each job's current overbilling until it winds down at the finish. Labor is paid the month it's spent, materials and other costs the next month, and subs when the owner pays.</div>
+    <div id="cash"></div>
+    <h2>Watch list</h2>
+    <div class="sub">Click a job to set its finish month, cost spread or expected fade.</div>
+    <div id="watch"></div>
+    <h2>Jobs</h2>
+    <div class="jobbar"><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center"><div id="jobtabs"></div><div class="seg" id="metric"></div></div><div style="display:flex;gap:10px;align-items:center"><input id="q" placeholder="Search jobs" style="width:180px"><label class="sub"><input type="checkbox" id="showDone"> Show finished jobs</label></div></div>
+    <div class="sub" id="jobcap" style="margin:0 0 6px"></div><div class="scroll tall" id="jobs"></div>
+    <div id="notwip"></div>
+    <h2>Likely jobs</h2>
+    <div class="sub">Upcoming work that isn't on the WIP yet. Enter the revenue you expect each month and a GP %.</div>
+    <div class="scroll" id="likely"></div>
+    <button class="ghost" id="addLikely" style="margin-top:8px">+ Add likely job</button>
+    <h2>Overhead and service</h2>
+    <div class="scroll" id="overhead" style="padding:0"></div>
+  </div>
+</div>
+<div id="look"><div class="wrap">
+  <header><div><h1>Cash lookahead</h1><div class="sub">Week by week through May: will the line of credit hold, and is the company getting healthier? The near weeks come from the weekly cash sheet; the rest from the drivers at the bottom.</div></div></header>
+  <div id="lookdoc"></div></div></div>
+<div id="score"><div class="wrap">
+  <header><div><h1>Job scorecard</h1><div class="sub">How many jobs are beating or slipping against the original estimate, and who estimated and ran each one.</div></div></header>
+  <div id="scoredoc"></div></div></div>
+<div id="report">
+  <div class="rtool">
+    <button class="ghost" id="rBack">← Back to forecast</button>
+    <label>Months <select id="rSpan"><option value="ye">Through year end</option><option value="3">Next 3</option><option value="6">Next 6</option><option value="12">Next 12</option></select></label>
+    <label>Job detail <select id="rDetail"><option value="all">Revenue, cost and profit</option><option value="gp">Profit only</option><option value="rev">Revenue only</option><option value="none">Divisions only</option></select></label>
+    <label>Prepared by <input id="rBy" placeholder="Name, title" style="width:150px"></label>
+    <span style="flex:1"></span>
+    <button class="ghost" id="rCopy">Copy for Excel</button><button class="ghost" id="rXlsx">Download Excel</button><button class="btn" id="rPrint">Print / Save PDF</button>
+    <details class="rwc"><summary>Balance sheet and line of credit</summary><div class="rwcg">
+      <label>Balance sheet month <input type="month" data-wc="asOf"></label>
+      <label>Current assets <input type="number" data-wc="ca" step="1000"></label>
+      <label>Current liabilities <input type="number" data-wc="cl" step="1000"></label>
+      <label>Line balance on balance sheet <input type="number" data-wc="locAsOf" step="1000"></label>
+      <label>Line balance at start of cash forecast <input type="number" data-wc="lineStart" step="1000"></label>
+      <label>Known line balance: month <input type="month" data-wc="knownM1"></label>
+      <label>Known line balance: amount <input type="number" data-wc="knownV1" step="1000"></label>
+      <label>Known line balance: month <input type="month" data-wc="knownM2"></label>
+      <label>Known line balance: amount <input type="number" data-wc="knownV2" step="1000"></label>
+      <label>Line limit <input type="number" data-wc="limit" step="50000"></label>
+      <label>Line rate % <input type="number" data-wc="rate" data-wcpct="1" step="0.25"></label>
+      <label>Line renews <input type="month" data-wc="renew"></label>
+      <label>Depreciation / month <input type="number" data-wc="dep" step="1000"></label>
+      <label>Vehicle loan principal / month <input type="number" data-wc="principal" step="1000"></label>
+      <label>Owner draws / month <input type="number" data-wc="draws" step="1000"></label>
+      <label>Interest already in P&amp;L overhead / month <input type="number" data-wc="histInterest" step="500"></label>
+      <label>Vehicle loan balance on balance sheet <input type="number" data-wc="vehBal" step="1000"></label>
+      <label>Vehicle loan rate % <input type="number" data-wc="vehRate" data-wcpct="1" step="0.25"></label>
+      <label>Show liquidity through <input type="month" data-wc="thru"></label>
+      <label>Backup source of cash (text) <input type="text" data-wc="contDesc" placeholder="e.g. Owner-held real estate" style="width:180px"></label>
+      <label>Backup value $ <input type="number" data-wc="contAmt" step="50000" placeholder="optional"></label>
+      <label>Owner capital in (counted in forecast) $ <input type="number" data-wc="capAmt" step="50000" placeholder="0"></label>
+      <label>Owner capital arrives <input type="month" data-wc="capMonth"></label>
+      <label>Job bills paid when paid (% of job cost) <input type="number" data-wc="pwpShare" data-wcpct="1" step="1"></label>
+      <label>Cushion to keep available <input type="number" data-wc="cushion" step="50000"></label>
+      <label>Stress test: days slower to pay <input type="number" data-wc="slowDays" step="15"></label>
+    </div></details>
+    <label class="rnl">Notes for the reader (optional) <textarea id="rNotes" rows="2" placeholder="e.g. Two jobs account for the fourth-quarter fade; both are closed out by January."></textarea></label>
+  </div>
+  <div id="rdoc"></div>
+</div>
+<div id="editor"><div class="panel"></div></div>
+<div id="toast"></div>
+<script>
+/*ENGINE*/
+</script>
+<script>
+/*APP*/
+</script>
+</body>
+</html>

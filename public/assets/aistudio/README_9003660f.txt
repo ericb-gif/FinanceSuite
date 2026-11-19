@@ -1,0 +1,84 @@
+JRT WIP Builder — Offline edition 1.3
+
+START
+1. Extract the entire ZIP to a folder on your Windows computer.
+2. Open index.html in Edge or Chrome. Keep the vendor folder beside it.
+3. Choose your original Spectrum WIP report (.xls or .xlsx).
+4. Choose the matching hours report (.xls or .xlsx).
+5. Choose the active-job PDF export, or a spreadsheet/CSV with Job Number
+   and Division columns. Preserve leading zeros in job numbers.
+6. Review jobs. Use Select all, Clear all, search, or division filters.
+7. Download Excel report. The workbook contains formulas, cached results,
+   division subtotals, and a grand total. Review it before reporting.
+
+No installation, certificate, .NET runtime, server, or internet is required.
+Files are processed in browser memory. Nothing is sent to Spectrum or another
+server. Refreshing/closing the page clears the imported data and selections.
+No credentials or sample financial files are included in this package.
+
+JOB REVIEW
+Jobs are drawn from the WIP report and grouped using the active-job export.
+Phase prefixes in the hours report are NOT used as divisions.
+Jobs that match both sources are selected initially. A job missing a division
+or hours starts unchecked. You can assign a division and explicitly accept
+zero hours before including it. Select all also selects unresolved jobs, but
+export remains blocked until you resolve or exclude them.
+
+In the supplied samples, job 113368 (UPS Bathroom Remodel TI) is absent from
+both the hours report and active-job export. Confirm its division yourself.
+The finished sample places it in 02; all its financial amounts are zero.
+Active jobs without a WIP row do not generate empty financial rows.
+
+INPUTS / LIMITS
+The parsers target the supplied Spectrum export layouts. WIP and hours must
+have matching period dates when available. PDF must contain selectable text;
+scanned images are unsupported. PDF job rows must include division 00–03.
+Only the first worksheet is read. Maximum input size: 30 MB per file.
+If the PDF layout changes, use Job Number and Division spreadsheet columns.
+The Excel output is newly generated; editing an existing WIP is not included.
+Local browser policies may restrict file pages; if the page fails, report the
+visible error and browser version. Do not move index.html out of its folder.
+
+CALCULATIONS
+Contract = Revised Contract; Projected Cost = Total Cost;
+Actual Cost = Actual Cost; Billed = Billed from the WIP export.
+Projected and actual hours come from each hours-report job subtotal.
+The detailed formulas reproduce the finished sample, including loss-making
+jobs, uncapped completion percentage, and backlog = contract minus billings.
+Division/grand-total ratios with zero denominators display N/A instead of
+Excel division errors. Amounts retain full precision; display formatting
+follows the sample. The workbook recalculates when opened in Excel.
+
+VALIDATION
+Compared all 108 jobs' numeric results and divisions against the supplied
+finished workbook (manual division 02 and zero hours for job 113368).
+All values and 19 numeric grand totals matched within 0.001.
+XLS and XLSX input versions produced identical parsed records.
+Verified missing-hours selections block export and the generated workbook
+loads with an independent Excel file reader. Browser visual/interaction testing
+was not available in this build environment; test the first download locally.
+
+LATER INTERNAL SERVER
+core.js contains import, matching, calculation, and export logic; app.js
+contains the UI. A future internal server can supply the active-job map from
+Spectrum instead of a file. API credentials must stay on that server. This
+edition contains no API connection or hosted services.
+
+CONTENTS
+index.html, styles.css, app.js, core.js — application source
+styles-template.js — workbook formatting from the supplied report
+vendor/ — bundled offline libraries and licenses
+
+EXPORT LAYOUT UPDATE — November 10, 2026
+9-point Times New Roman text, compact detail rows, narrower per-column widths,
+and wrapped 30-point header rows. Calculations and selection behavior unchanged.
+
+EXPORT UPDATE — November 12, 2026
+Projected and Actual division title bands are grey with bold black text.
+Grand Total column W is highlighted green and calculates SUM(T[row]-S[row]),
+over billings minus under billings. The formula follows the actual total row.
+
+EXPORT FIX — November 12, 2026
+Highlighted headers and net total now use black text. Removed unused Office
+extension metadata with stale namespace references from the style template.
+This fixes the malformed styles introduced in edition 1.2.
